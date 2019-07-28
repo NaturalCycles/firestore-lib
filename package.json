@@ -41,7 +41,7 @@
   "engines": {
     "node": ">=10.13"
   },
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Firestore implementation of CommonDB interface",
   "author": "Natural Cycles Team",
   "license": "MIT"
