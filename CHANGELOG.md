@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.0...v1.0.1) (2019-08-18)
+
+
+### Bug Fixes
+
+* update to recent db-lib ([dbbb093](https://github.com/NaturalCycles/firestore-lib/commit/dbbb093))
+
 # 1.0.0 (2019-07-28)
 
 
