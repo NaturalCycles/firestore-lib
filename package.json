@@ -4,7 +4,7 @@
   "dependencies": {
     "@naturalcycles/db-lib": "^1.2.1",
     "@naturalcycles/js-lib": "^8.2.1",
-    "@naturalcycles/promise-lib": "^2.3.0"
+    "rxjs": "^6.5.2"
   },
   "peerDependencies": {
     "firebase-admin": ">=8.3.0"
@@ -13,13 +13,11 @@
     "@naturalcycles/db-dev-lib": "^1.1.0",
     "@naturalcycles/dev-lib": "^7.14.1",
     "@naturalcycles/nodejs-lib": "^6.8.0",
-    "@naturalcycles/semantic-release": "^1.0.0",
     "@naturalcycles/test-lib": "^1.0.3",
     "@types/node": "^12.6.8",
     "dotenv": "^8.0.0",
     "firebase-admin": "^8.3.0",
-    "jest": "^24.8.0",
-    "rxjs": "^6.5.2"
+    "jest": "^24.8.0"
   },
   "files": [
     "dist",
