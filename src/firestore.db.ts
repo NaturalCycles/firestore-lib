@@ -6,7 +6,7 @@ import {
   CommonDBSaveOptions,
   DBQuery,
 } from '@naturalcycles/db-lib'
-import { _chunk, pMap } from '@naturalcycles/js-lib'
+import { _chunk, filterUndefinedValues, pMap } from '@naturalcycles/js-lib'
 import * as firebaseAdmin from 'firebase-admin'
 import { Observable } from 'rxjs'
 import { Transform } from 'stream'
@@ -112,7 +112,10 @@ export class FirestoreDB implements CommonDB {
         const batch = this.cfg.firestore.batch()
 
         chunk.forEach(dbm => {
-          batch.set(this.cfg.firestore.collection(table).doc(escapeDocId(dbm.id)), dbm)
+          batch.set(
+            this.cfg.firestore.collection(table).doc(escapeDocId(dbm.id)),
+            filterUndefinedValues(dbm),
+          )
         })
 
         await batch.commit()
