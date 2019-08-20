@@ -104,7 +104,7 @@ export class FirestoreDB implements CommonDB {
     table: string,
     dbms: DBM[],
     opts?: FirestoreDBSaveOptions,
-  ): Promise<DBM[]> {
+  ): Promise<void> {
     // Firestore allows max 500 items in one batch
     await pMap(
       _chunk(dbms, 500),
@@ -122,8 +122,6 @@ export class FirestoreDB implements CommonDB {
       },
       { concurrency: 1 },
     )
-
-    return dbms
   }
 
   // DELETE
