@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.3...v1.0.4) (2019-08-20)
+
+
+### Bug Fixes
+
+* return await ([6c6267d](https://github.com/NaturalCycles/firestore-lib/commit/6c6267d))
+
 ## [1.0.3](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.2...v1.0.3) (2019-08-20)
 
 
