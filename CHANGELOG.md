@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.2...v1.0.3) (2019-08-20)
+
+
+### Bug Fixes
+
+* update to recent commondb interface ([d506916](https://github.com/NaturalCycles/firestore-lib/commit/d506916))
+
 ## [1.0.2](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.1...v1.0.2) (2019-08-18)
 
 
