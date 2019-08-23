@@ -7,12 +7,12 @@ import {
   DBQuery,
 } from '@naturalcycles/db-lib'
 import { _chunk, filterUndefinedValues, pMap } from '@naturalcycles/js-lib'
+import { streamToObservable } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
 import { Observable } from 'rxjs'
 import { Transform } from 'stream'
 import { escapeDocId, unescapeDocId } from './firestore.util'
 import { dbQueryToFirestoreQuery } from './query.util'
-import { streamToObservable } from './stream.util'
 
 export interface FirestoreDBCfg {
   firestore: firebaseAdmin.firestore.Firestore
@@ -129,7 +129,7 @@ export class FirestoreDB implements CommonDB {
   async deleteByQuery<DBM extends BaseDBEntity> (
     q: DBQuery<DBM>,
     opts?: FirestoreDBOptions,
-  ): Promise<string[]> {
+  ): Promise<number> {
     const firestoreQuery = dbQueryToFirestoreQuery(
       q.select([]),
       this.cfg.firestore.collection(q.table),
@@ -138,10 +138,10 @@ export class FirestoreDB implements CommonDB {
 
     await this.deleteByIds(q.table, ids, opts)
 
-    return ids
+    return ids.length
   }
 
-  async deleteByIds (table: string, ids: string[], opts?: FirestoreDBOptions): Promise<string[]> {
+  async deleteByIds (table: string, ids: string[], opts?: FirestoreDBOptions): Promise<number> {
     await pMap(_chunk(ids, 500), async chunk => {
       const batch = this.cfg.firestore.batch()
 
@@ -152,7 +152,7 @@ export class FirestoreDB implements CommonDB {
       await batch.commit()
     })
 
-    return ids
+    return ids.length
   }
 
   private querySnapshotToArray<T = any> (qs: QuerySnapshot): T[] {

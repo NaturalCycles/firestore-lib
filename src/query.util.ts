@@ -5,16 +5,12 @@ import { StringMap } from '@naturalcycles/js-lib'
 // Map DBQueryFilterOp to WhereFilterOp
 const OP_MAP: StringMap<WhereFilterOp> = {
   '=': '==',
+  in: 'array-contains',
 }
 
 export function dbQueryToFirestoreQuery (dbQuery: DBQuery, emptyQuery: Query): Query {
   // filter
   let q = dbQuery._filters.reduce((q, f) => {
-    if (Array.isArray(f.val)) {
-      // Special treatment
-      return q.where(f.name, 'array-contains', f.val)
-    }
-
     return q.where(f.name, OP_MAP[f.op] || f.op, f.val)
   }, emptyQuery)
 
