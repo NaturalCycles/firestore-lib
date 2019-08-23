@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.4...v1.0.5) (2019-08-23)
+
+
+### Bug Fixes
+
+* adopt to db-lib ([60800db](https://github.com/NaturalCycles/firestore-lib/commit/60800db))
+
 ## [1.0.4](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.3...v1.0.4) (2019-08-20)
 
 
