@@ -602,20 +602,22 @@
     type-fest "^0.7.1"
 
 "@naturalcycles/dev-lib@^7.14.1":
-  version "7.16.3"
-  resolved "https://registry.yarnpkg.com/@naturalcycles/dev-lib/-/dev-lib-7.16.3.tgz#e2e3f23deaabe2d89064db0178036011a900d724"
-  integrity sha512-emNlOR/EfDkaEc7lzY42ByrJWcVvutzx5tRR09aZdJUD+I17hCPrHliOhIsjhhIUQVJFH+ofJG0Q5f4pQ7MFag==
+  version "7.17.0"
+  resolved "https://registry.yarnpkg.com/@naturalcycles/dev-lib/-/dev-lib-7.17.0.tgz#476993b9e3e370a792141a2b9cfb84f560bd2656"
+  integrity sha512-O7v1pLGkvhLOOQFoGGBJT09ifOkTJk7AHTTDYyuRyx3dk39NtgT7CvLMtxjhdcZgklaAW7qu+Yp81zU5gzoLiQ==
   dependencies:
     "@commitlint/cli" "^8.0.0"
     "@commitlint/config-conventional" "^8.0.0"
     "@naturalcycles/fs-lib" "^2.0.0"
     "@naturalcycles/js-lib" "^8.0.0"
+    "@types/dotenv" "^6.1.1"
     "@types/fs-extra" "^8.0.0"
     "@types/jest" "^24.0.6"
     "@types/node" "^12.0.0"
     "@types/yargs" "^13.0.0"
     chalk "^2.4.2"
     command-exists "^1.2.8"
+    dotenv "^8.1.0"
     execa "^2.0.3"
     fs-extra "^8.0.0"
     husky "^3.0.0"
@@ -652,16 +654,18 @@
     type-fest "^0.7.1"
 
 "@naturalcycles/nodejs-lib@^6.5.0", "@naturalcycles/nodejs-lib@^6.8.0":
-  version "6.13.0"
-  resolved "https://registry.yarnpkg.com/@naturalcycles/nodejs-lib/-/nodejs-lib-6.13.0.tgz#93743992055ec8babb00fb8d398fba798171408d"
-  integrity sha512-I4zJ7JWfedLcyLCzuSatvK3KJkzg+obsogCelMDpepb8b6PEHDYrQDdLlpTCiS5/1Gmhouw3kYpZV9f72sQhTg==
+  version "6.16.2"
+  resolved "https://registry.yarnpkg.com/@naturalcycles/nodejs-lib/-/nodejs-lib-6.16.2.tgz#75097feef94e7f00d2d75f2014f4a7af59869ef8"
+  integrity sha512-L8z41vFPftrGU+H7SJ9u2eLSGW3pEVsysnLPoXyU/+8Qy7R+hQHuwbG3wFK/K28K5RpLM2VJ5V6+InRawUxxoQ==
   dependencies:
     "@hapi/joi" "^15.0.2"
     "@naturalcycles/js-lib" "^8.0.0"
     "@naturalcycles/time-lib" "^1.0.0"
+    "@types/dotenv" "^6.1.1"
     "@types/hapi__joi" "^15.0.1"
     "@types/lru-cache" "^5.1.0"
     debug "^4.1.1"
+    dotenv "^8.1.0"
     lru-cache "^5.1.1"
     nanoid "^2.0.2"
     rxjs "^6.5.2"
@@ -793,6 +797,13 @@
   integrity sha512-CeBpmX1J8kWLcDEnI3Cl2Eo6RfbGvzUctA+CjZUhOKDFbLfcr7fc4usEqLNWetrlJd7RhAkyYe2czXop4fICpw==
   dependencies:
     "@babel/types" "^7.3.0"
+
+"@types/dotenv@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@types/dotenv/-/dotenv-6.1.1.tgz#f7ce1cc4fe34f0a4373ba99fefa437b0bec54b46"
+  integrity sha512-ftQl3DtBvqHl9L16tpqqzA4YzCSXZfi7g8cQceTz5rOlYtk/IZbFjAv3mLOQlNIgOaylCQWQoBdDQHPgEBJPHg==
+  dependencies:
+    "@types/node" "*"
 
 "@types/events@*":
   version "3.0.0"
@@ -1895,7 +1906,7 @@ dot-prop@^5.1.0:
   dependencies:
     is-obj "^2.0.0"
 
-dotenv@^8.0.0:
+dotenv@^8.0.0, dotenv@^8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.1.0.tgz#d811e178652bfb8a1e593c6dd704ec7e90d85ea2"
   integrity sha512-GUE3gqcDCaMltj2++g6bRQ5rBJWtkWTmqmD0fo1RnnMuUqHNCt2oTPeDnS9n6fKYvlhn7AeBkb38lymBtWBQdA==

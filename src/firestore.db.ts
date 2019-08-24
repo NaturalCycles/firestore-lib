@@ -22,7 +22,7 @@ export interface FirestoreDBOptions extends CommonDBOptions {}
 export interface FirestoreDBSaveOptions extends CommonDBSaveOptions {}
 
 export class FirestoreDB implements CommonDB {
-  constructor (private cfg: FirestoreDBCfg) {}
+  constructor (public cfg: FirestoreDBCfg) {}
 
   async resetCache (): Promise<void> {}
 
