@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.5...v1.0.6) (2019-08-24)
+
+
+### Bug Fixes
+
+* missing index.ts ([b2b75cd](https://github.com/NaturalCycles/firestore-lib/commit/b2b75cd))
+
 ## [1.0.5](https://github.com/NaturalCycles/firestore-lib/compare/v1.0.4...v1.0.5) (2019-08-23)
 
 
