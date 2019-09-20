@@ -1,10 +1,11 @@
 import { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
 import {
-  BaseDBEntity,
   CommonDB,
   CommonDBOptions,
   CommonDBSaveOptions,
   DBQuery,
+  RunQueryResult,
+  SavedDBEntity,
 } from '@naturalcycles/db-lib'
 import { _chunk, filterUndefinedValues, pMap } from '@naturalcycles/js-lib'
 import { streamToObservable } from '@naturalcycles/nodejs-lib'
@@ -22,12 +23,12 @@ export interface FirestoreDBOptions extends CommonDBOptions {}
 export interface FirestoreDBSaveOptions extends CommonDBSaveOptions {}
 
 export class FirestoreDB implements CommonDB {
-  constructor (public cfg: FirestoreDBCfg) {}
+  constructor(public cfg: FirestoreDBCfg) {}
 
-  async resetCache (): Promise<void> {}
+  async resetCache(): Promise<void> {}
 
   // GET
-  async getByIds<DBM extends BaseDBEntity> (
+  async getByIds<DBM extends SavedDBEntity>(
     table: string,
     ids: string[],
     opts?: FirestoreDBOptions,
@@ -37,7 +38,7 @@ export class FirestoreDB implements CommonDB {
     ) as DBM[]
   }
 
-  async getById<DBM extends BaseDBEntity> (
+  async getById<DBM extends SavedDBEntity>(
     table: string,
     id: string,
     opts?: FirestoreDBOptions,
@@ -57,29 +58,30 @@ export class FirestoreDB implements CommonDB {
   }
 
   // QUERY
-  async runQuery<DBM extends BaseDBEntity> (
+  async runQuery<DBM extends SavedDBEntity>(
     q: DBQuery<DBM>,
     opts?: FirestoreDBOptions,
-  ): Promise<DBM[]> {
+  ): Promise<RunQueryResult<DBM>> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
-    return this.runFirestoreQuery(firestoreQuery, opts)
+    return { records: await this.runFirestoreQuery(firestoreQuery, opts) }
   }
 
-  async runFirestoreQuery<DBM extends BaseDBEntity> (
+  async runFirestoreQuery<DBM extends SavedDBEntity>(
     q: Query,
     opts?: FirestoreDBOptions,
   ): Promise<DBM[]> {
     return this.querySnapshotToArray(await q.get())
   }
 
-  async runQueryCount<DBM extends BaseDBEntity> (
+  async runQueryCount<DBM extends SavedDBEntity>(
     q: DBQuery<DBM>,
     opts?: FirestoreDBOptions,
   ): Promise<number> {
-    return (await this.runQuery(q.select([]))).length
+    const { records } = await this.runQuery(q.select([]))
+    return records.length
   }
 
-  streamQuery<DBM extends BaseDBEntity> (
+  streamQuery<DBM extends SavedDBEntity>(
     q: DBQuery<DBM>,
     opts?: FirestoreDBOptions,
   ): Observable<DBM> {
@@ -100,7 +102,7 @@ export class FirestoreDB implements CommonDB {
   }
 
   // SAVE
-  async saveBatch<DBM extends BaseDBEntity> (
+  async saveBatch<DBM extends SavedDBEntity>(
     table: string,
     dbms: DBM[],
     opts?: FirestoreDBSaveOptions,
@@ -126,7 +128,7 @@ export class FirestoreDB implements CommonDB {
 
   // DELETE
 
-  async deleteByQuery<DBM extends BaseDBEntity> (
+  async deleteByQuery<DBM extends SavedDBEntity>(
     q: DBQuery<DBM>,
     opts?: FirestoreDBOptions,
   ): Promise<number> {
@@ -141,7 +143,7 @@ export class FirestoreDB implements CommonDB {
     return ids.length
   }
 
-  async deleteByIds (table: string, ids: string[], opts?: FirestoreDBOptions): Promise<number> {
+  async deleteByIds(table: string, ids: string[], opts?: FirestoreDBOptions): Promise<number> {
     await pMap(_chunk(ids, 500), async chunk => {
       const batch = this.cfg.firestore.batch()
 
@@ -155,7 +157,7 @@ export class FirestoreDB implements CommonDB {
     return ids.length
   }
 
-  private querySnapshotToArray<T = any> (qs: QuerySnapshot): T[] {
+  private querySnapshotToArray<T = any>(qs: QuerySnapshot): T[] {
     const rows: any[] = []
 
     qs.forEach(doc => {

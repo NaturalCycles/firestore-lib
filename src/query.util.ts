@@ -8,7 +8,7 @@ const OP_MAP: StringMap<WhereFilterOp> = {
   in: 'array-contains',
 }
 
-export function dbQueryToFirestoreQuery (dbQuery: DBQuery, emptyQuery: Query): Query {
+export function dbQueryToFirestoreQuery(dbQuery: DBQuery, emptyQuery: Query): Query {
   // filter
   let q = dbQuery._filters.reduce((q, f) => {
     return q.where(f.name, OP_MAP[f.op] || f.op, f.val)

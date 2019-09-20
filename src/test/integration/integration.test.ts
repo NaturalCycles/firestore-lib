@@ -1,26 +1,31 @@
-import { TEST_TABLE, testDao, testDB, TestItem } from '@naturalcycles/db-dev-lib'
-import { createdUpdatedFields, DBQuery } from '@naturalcycles/db-lib'
-import { firestoreDB, testItemDao } from './firestore.mock'
+import {
+  createdUpdatedFields,
+  runCommonDaoTest,
+  runCommonDBTest,
+  TEST_TABLE,
+  TestItemDBM,
+} from '@naturalcycles/db-lib'
+import { firestoreDB } from './firestore.mock'
 
 jest.setTimeout(60000)
 
-test('testDB', async () => {
-  await testDB(firestoreDB, DBQuery)
+test('runCommonDBTest', async () => {
+  await runCommonDBTest(firestoreDB)
 })
 
-test('testDao', async () => {
-  await testDao(testItemDao, DBQuery)
+test('runCommonDaoTest', async () => {
+  await runCommonDaoTest(firestoreDB)
 })
 
 test.skip('undefined value', async () => {
-  const testItem: TestItem = {
+  const testItem: TestItemDBM = {
     id: '123',
     k1: 'k11',
     k3: undefined,
     // k3: null as any,
     ...createdUpdatedFields(),
   }
-  await firestoreDB.saveBatch<TestItem>(TEST_TABLE, [testItem])
+  await firestoreDB.saveBatch<TestItemDBM>(TEST_TABLE, [testItem])
   const loaded = await firestoreDB.getById(TEST_TABLE, testItem.id)
   console.log(loaded)
 })

@@ -1,5 +1,3 @@
-import { TEST_TABLE, TestItem, testItemUnsavedSchema } from '@naturalcycles/db-dev-lib'
-import { CommonDao } from '@naturalcycles/db-lib'
 import { base64ToString, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
 import { FirestoreDB } from '../../firestore.db'
@@ -17,11 +15,4 @@ const firestore = firebaseAdmin
 
 export const firestoreDB = new FirestoreDB({
   firestore,
-})
-
-export const testItemDao = new CommonDao<TestItem>({
-  table: TEST_TABLE,
-  db: firestoreDB,
-  bmUnsavedSchema: testItemUnsavedSchema,
-  dbmUnsavedSchema: testItemUnsavedSchema,
 })
