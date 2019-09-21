@@ -9,13 +9,9 @@ import { firestoreDB } from './firestore.mock'
 
 jest.setTimeout(60000)
 
-test('runCommonDBTest', async () => {
-  await runCommonDBTest(firestoreDB)
-})
+describe('runCommonDBTest', () => runCommonDBTest(firestoreDB))
 
-test('runCommonDaoTest', async () => {
-  await runCommonDaoTest(firestoreDB)
-})
+describe('runCommonDaoTest', () => runCommonDaoTest(firestoreDB))
 
 test.skip('undefined value', async () => {
   const testItem: TestItemDBM = {
