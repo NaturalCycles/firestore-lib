@@ -1,17 +1,19 @@
 import { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
 import {
   CommonDB,
+  CommonDBCreateOptions,
   CommonDBOptions,
   CommonDBSaveOptions,
+  CommonDBStreamOptions,
+  CommonSchema,
   DBQuery,
   ObjectWithId,
   RunQueryResult,
   SavedDBEntity,
 } from '@naturalcycles/db-lib'
-import { _chunk, filterUndefinedValues, pMap } from '@naturalcycles/js-lib'
-import { streamToObservable } from '@naturalcycles/nodejs-lib'
+import { filterUndefinedValues, pMap, _chunk } from '@naturalcycles/js-lib'
+import { ReadableTyped } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
-import { Observable } from 'rxjs'
 import { Transform } from 'stream'
 import { escapeDocId, unescapeDocId } from './firestore.util'
 import { dbQueryToFirestoreQuery } from './query.util'
@@ -44,10 +46,7 @@ export class FirestoreDB implements CommonDB {
     id: string,
     opt?: FirestoreDBOptions,
   ): Promise<DBM | undefined> {
-    const doc = await this.cfg.firestore
-      .collection(table)
-      .doc(escapeDocId(id))
-      .get()
+    const doc = await this.cfg.firestore.collection(table).doc(escapeDocId(id)).get()
 
     const data = doc.data()
     if (data === undefined) return
@@ -81,22 +80,20 @@ export class FirestoreDB implements CommonDB {
 
   streamQuery<DBM extends SavedDBEntity, OUT = DBM>(
     q: DBQuery<any, DBM>,
-    opt?: FirestoreDBOptions,
-  ): Observable<OUT> {
+    opt?: CommonDBStreamOptions,
+  ): ReadableTyped<OUT> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
-    return streamToObservable(
-      firestoreQuery.stream().pipe(
-        new Transform({
-          objectMode: true,
-          transform: (doc: QueryDocumentSnapshot, enc, callback) => {
-            callback(undefined, {
-              id: unescapeDocId(doc.id),
-              ...doc.data(),
-            })
-          },
-        }),
-      ),
+    return firestoreQuery.stream().pipe(
+      new Transform({
+        objectMode: true,
+        transform: (doc: QueryDocumentSnapshot, _enc, cb) => {
+          cb(null, {
+            id: unescapeDocId(doc.id),
+            ...doc.data(),
+          })
+        },
+      }),
     )
   }
 
@@ -167,5 +164,20 @@ export class FirestoreDB implements CommonDB {
     })
 
     return rows
+  }
+
+  async getTables(): Promise<string[]> {
+    return [] // todo
+  }
+
+  async getTableSchema<DBM extends SavedDBEntity>(table: string): Promise<CommonSchema<DBM>> {
+    return {
+      table,
+      fields: [],
+    }
+  }
+
+  async createTable(schema: CommonSchema, opt?: CommonDBCreateOptions): Promise<void> {
+    // todo
   }
 }
