@@ -7,11 +7,11 @@ import {
   CommonDBStreamOptions,
   CommonSchema,
   DBQuery,
+  DBTransaction,
   ObjectWithId,
   RunQueryResult,
-  SavedDBEntity,
 } from '@naturalcycles/db-lib'
-import { filterUndefinedValues, pMap, _chunk } from '@naturalcycles/js-lib'
+import { pMap, _chunk, _filterNullishValues, _omit } from '@naturalcycles/js-lib'
 import { ReadableTyped } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
 import { Transform } from 'stream'
@@ -28,24 +28,24 @@ export interface FirestoreDBSaveOptions extends CommonDBSaveOptions {}
 export class FirestoreDB implements CommonDB {
   constructor(public cfg: FirestoreDBCfg) {}
 
-  async resetCache(): Promise<void> {}
-
   // GET
-  async getByIds<DBM extends SavedDBEntity>(
+  async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: string[],
     opt?: FirestoreDBOptions,
-  ): Promise<DBM[]> {
-    return (await Promise.all(ids.map(id => this.getById<DBM>(table, id, opt)))).filter(
+  ): Promise<ROW[]> {
+    // Oj, doesn't look like a very optimal implementation!
+    // TODO: check if we can query by keys or smth
+    return (await Promise.all(ids.map(id => this.getById<ROW>(table, id, opt)))).filter(
       Boolean,
-    ) as DBM[]
+    ) as ROW[]
   }
 
-  async getById<DBM extends SavedDBEntity>(
+  async getById<ROW extends ObjectWithId>(
     table: string,
     id: string,
     opt?: FirestoreDBOptions,
-  ): Promise<DBM | undefined> {
+  ): Promise<ROW | undefined> {
     const doc = await this.cfg.firestore.collection(table).doc(escapeDocId(id)).get()
 
     const data = doc.data()
@@ -58,15 +58,23 @@ export class FirestoreDB implements CommonDB {
   }
 
   // QUERY
-  async runQuery<DBM extends SavedDBEntity, OUT = DBM>(
-    q: DBQuery<any, DBM>,
+  async runQuery<ROW extends ObjectWithId, OUT = ROW>(
+    q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<RunQueryResult<OUT>> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
-    return { records: await this.runFirestoreQuery<DBM, OUT>(firestoreQuery, opt) }
+
+    let rows = await this.runFirestoreQuery<ROW, OUT>(firestoreQuery, opt)
+
+    // Special case when projection query didn't specify 'id'
+    if (q._selectedFieldNames && !q._selectedFieldNames.includes('id')) {
+      rows = rows.map(r => _omit(r as any, ['id']))
+    }
+
+    return { rows }
   }
 
-  async runFirestoreQuery<DBM extends SavedDBEntity, OUT = DBM>(
+  async runFirestoreQuery<ROW extends ObjectWithId, OUT = ROW>(
     q: Query,
     opt?: FirestoreDBOptions,
   ): Promise<OUT[]> {
@@ -74,12 +82,12 @@ export class FirestoreDB implements CommonDB {
   }
 
   async runQueryCount(q: DBQuery, opt?: FirestoreDBOptions): Promise<number> {
-    const { records } = await this.runQuery<any, ObjectWithId>(q.select([]))
-    return records.length
+    const { rows } = await this.runQuery<any, ObjectWithId>(q.select([]), opt)
+    return rows.length
   }
 
-  streamQuery<DBM extends SavedDBEntity, OUT = DBM>(
-    q: DBQuery<any, DBM>,
+  streamQuery<ROW extends ObjectWithId, OUT = ROW>(
+    q: DBQuery<ROW>,
     opt?: CommonDBStreamOptions,
   ): ReadableTyped<OUT> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
@@ -98,21 +106,21 @@ export class FirestoreDB implements CommonDB {
   }
 
   // SAVE
-  async saveBatch<DBM extends SavedDBEntity>(
+  async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    dbms: DBM[],
+    rows: ROW[],
     opt?: FirestoreDBSaveOptions,
   ): Promise<void> {
     // Firestore allows max 500 items in one batch
     await pMap(
-      _chunk(dbms, 500),
+      _chunk(rows, 500),
       async chunk => {
         const batch = this.cfg.firestore.batch()
 
-        chunk.forEach(dbm => {
+        chunk.forEach(row => {
           batch.set(
-            this.cfg.firestore.collection(table).doc(escapeDocId(dbm.id)),
-            filterUndefinedValues(dbm),
+            this.cfg.firestore.collection(table).doc(escapeDocId(row.id)),
+            _filterNullishValues(row), // todo: check if we really need to filter them (thinking of null values)
           )
         })
 
@@ -123,16 +131,15 @@ export class FirestoreDB implements CommonDB {
   }
 
   // DELETE
-
-  async deleteByQuery<DBM extends SavedDBEntity>(
-    q: DBQuery<DBM>,
+  async deleteByQuery<ROW extends ObjectWithId>(
+    q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<number> {
     const firestoreQuery = dbQueryToFirestoreQuery(
       q.select([]),
       this.cfg.firestore.collection(q.table),
     )
-    const ids = (await this.runFirestoreQuery<DBM, ObjectWithId>(firestoreQuery)).map(obj => obj.id)
+    const ids = (await this.runFirestoreQuery<ROW, ObjectWithId>(firestoreQuery)).map(obj => obj.id)
 
     await this.deleteByIds(q.table, ids, opt)
 
@@ -170,7 +177,7 @@ export class FirestoreDB implements CommonDB {
     return [] // todo
   }
 
-  async getTableSchema<DBM extends SavedDBEntity>(table: string): Promise<CommonSchema<DBM>> {
+  async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<CommonSchema<ROW>> {
     return {
       table,
       fields: [],
@@ -179,5 +186,13 @@ export class FirestoreDB implements CommonDB {
 
   async createTable(schema: CommonSchema, opt?: CommonDBCreateOptions): Promise<void> {
     // todo
+  }
+
+  async commitTransaction(tx: DBTransaction, opt?: CommonDBSaveOptions): Promise<void> {
+    throw new Error('commitTransaction is not supported yet')
+  }
+
+  async ping(): Promise<void> {
+    // no-op now
   }
 }

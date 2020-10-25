@@ -1,17 +1,17 @@
 import { Query, WhereFilterOp } from '@google-cloud/firestore'
-import { DBQuery } from '@naturalcycles/db-lib'
-import { StringMap } from '@naturalcycles/js-lib'
+import { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 
 // Map DBQueryFilterOp to WhereFilterOp
-const OP_MAP: StringMap<WhereFilterOp> = {
-  '=': '==',
-  in: 'array-contains',
+// Currently it's fully aligned!
+const OP_MAP: Partial<Record<DBQueryFilterOperator, WhereFilterOp>> = {
+  // '=': '==',
+  // in: 'array-contains',
 }
 
 export function dbQueryToFirestoreQuery(dbQuery: DBQuery, emptyQuery: Query): Query {
   // filter
   let q = dbQuery._filters.reduce((q, f) => {
-    return q.where(f.name, OP_MAP[f.op] || f.op, f.val)
+    return q.where(f.name, OP_MAP[f.op] || (f.op as WhereFilterOp), f.val)
   }, emptyQuery)
 
   // order
@@ -24,6 +24,7 @@ export function dbQueryToFirestoreQuery(dbQuery: DBQuery, emptyQuery: Query): Qu
 
   // selectedFields
   if (dbQuery._selectedFieldNames) {
+    // todo: check if at least id / __key__ is required to be set
     q = q.select(...dbQuery._selectedFieldNames)
   }
 

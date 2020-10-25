@@ -1,10 +1,10 @@
+import { createdUpdatedFields } from '@naturalcycles/db-lib'
 import {
-  createdUpdatedFields,
   runCommonDaoTest,
   runCommonDBTest,
   TestItemDBM,
   TEST_TABLE,
-} from '@naturalcycles/db-lib'
+} from '@naturalcycles/db-lib/dist/testing'
 import { firestoreDB } from './firestore.mock'
 
 jest.setTimeout(60000)

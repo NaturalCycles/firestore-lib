@@ -2,20 +2,20 @@
   "name": "@naturalcycles/firestore-lib",
   "scripts": {},
   "dependencies": {
-    "@naturalcycles/db-lib": "^3.17.0",
-    "@naturalcycles/js-lib": "^10.1.0"
+    "@naturalcycles/db-lib": "^8.2.0",
+    "@naturalcycles/js-lib": "^14.6.0"
   },
   "peerDependencies": {
-    "firebase-admin": ">=8.3.0"
+    "firebase-admin": ">=9.3.0"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "^10.6.0",
-    "@naturalcycles/nodejs-lib": "^8.0.0",
+    "@naturalcycles/dev-lib": "^10.19.0",
+    "@naturalcycles/nodejs-lib": "^12.4.0",
     "@naturalcycles/test-lib": "^1.0.3",
-    "@types/node": "^13.9.2",
+    "@types/node": "^14.14.2",
     "dotenv": "^8.0.0",
-    "firebase-admin": "^8.3.0",
-    "jest": "^25.1.0"
+    "firebase-admin": "^9.3.0",
+    "jest": "^26.6.1"
   },
   "files": [
     "dist",

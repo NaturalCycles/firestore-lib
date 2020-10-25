@@ -1,6 +1,6 @@
 import { base64ToString, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
-import { FirestoreDB } from '../../firestore.db'
+import { FirestoreDB } from '../index'
 require('dotenv').config()
 
 const { FIREBASE_DB_URL, SECRET_FIREBASE } = requireEnvKeys('FIREBASE_DB_URL', 'SECRET_FIREBASE')
