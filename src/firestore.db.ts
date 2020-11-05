@@ -58,13 +58,13 @@ export class FirestoreDB implements CommonDB {
   }
 
   // QUERY
-  async runQuery<ROW extends ObjectWithId, OUT = ROW>(
+  async runQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
-  ): Promise<RunQueryResult<OUT>> {
+  ): Promise<RunQueryResult<ROW>> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
-    let rows = await this.runFirestoreQuery<ROW, OUT>(firestoreQuery, opt)
+    let rows = await this.runFirestoreQuery<ROW>(firestoreQuery, opt)
 
     // Special case when projection query didn't specify 'id'
     if (q._selectedFieldNames && !q._selectedFieldNames.includes('id')) {
@@ -74,22 +74,25 @@ export class FirestoreDB implements CommonDB {
     return { rows }
   }
 
-  async runFirestoreQuery<ROW extends ObjectWithId, OUT = ROW>(
+  async runFirestoreQuery<ROW extends ObjectWithId>(
     q: Query,
     opt?: FirestoreDBOptions,
-  ): Promise<OUT[]> {
+  ): Promise<ROW[]> {
     return this.querySnapshotToArray(await q.get())
   }
 
-  async runQueryCount(q: DBQuery, opt?: FirestoreDBOptions): Promise<number> {
-    const { rows } = await this.runQuery<any, ObjectWithId>(q.select([]), opt)
+  async runQueryCount<ROW extends ObjectWithId>(
+    q: DBQuery<ROW>,
+    opt?: FirestoreDBOptions,
+  ): Promise<number> {
+    const { rows } = await this.runQuery(q.select([]), opt)
     return rows.length
   }
 
-  streamQuery<ROW extends ObjectWithId, OUT = ROW>(
+  streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: CommonDBStreamOptions,
-  ): ReadableTyped<OUT> {
+  ): ReadableTyped<ROW> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
     return firestoreQuery.stream().pipe(
@@ -139,7 +142,7 @@ export class FirestoreDB implements CommonDB {
       q.select([]),
       this.cfg.firestore.collection(q.table),
     )
-    const ids = (await this.runFirestoreQuery<ROW, ObjectWithId>(firestoreQuery)).map(obj => obj.id)
+    const ids = (await this.runFirestoreQuery<ROW>(firestoreQuery)).map(obj => obj.id)
 
     await this.deleteByIds(q.table, ids, opt)
 

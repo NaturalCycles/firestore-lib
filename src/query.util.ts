@@ -1,5 +1,5 @@
 import { Query, WhereFilterOp } from '@google-cloud/firestore'
-import { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
+import { DBQuery, DBQueryFilterOperator, ObjectWithId } from '@naturalcycles/db-lib'
 
 // Map DBQueryFilterOp to WhereFilterOp
 // Currently it's fully aligned!
@@ -8,7 +8,10 @@ const OP_MAP: Partial<Record<DBQueryFilterOperator, WhereFilterOp>> = {
   // in: 'array-contains',
 }
 
-export function dbQueryToFirestoreQuery(dbQuery: DBQuery, emptyQuery: Query): Query {
+export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
+  dbQuery: DBQuery<ROW>,
+  emptyQuery: Query,
+): Query {
   // filter
   let q = dbQuery._filters.reduce((q, f) => {
     return q.where(f.name, OP_MAP[f.op] || (f.op as WhereFilterOp), f.val)
