@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.1...v1.1.2) (2021-02-27)
+
+
+### Bug Fixes
+
+* deps ([741c1cb](https://github.com/NaturalCycles/firestore-lib/commit/741c1cbd2fbc913a32bdd26d394a14ea9e548f76))
+
 ## [1.1.1](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.0...v1.1.1) (2020-11-05)
 
 
