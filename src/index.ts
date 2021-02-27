@@ -6,10 +6,6 @@ import {
 } from './firestore.db'
 import { dbQueryToFirestoreQuery } from './query.util'
 
-export {
-  FirestoreDBCfg,
-  FirestoreDBOptions,
-  FirestoreDBSaveOptions,
-  FirestoreDB,
-  dbQueryToFirestoreQuery,
-}
+export type { FirestoreDBCfg, FirestoreDBOptions, FirestoreDBSaveOptions }
+
+export { FirestoreDB, dbQueryToFirestoreQuery }
