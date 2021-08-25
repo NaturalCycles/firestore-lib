@@ -13,11 +13,13 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
   emptyQuery: Query,
 ): Query {
   // filter
+  // eslint-disable-next-line unicorn/no-array-reduce, unicorn/prefer-object-from-entries
   let q = dbQuery._filters.reduce((q, f) => {
     return q.where(f.name, OP_MAP[f.op] || (f.op as WhereFilterOp), f.val)
   }, emptyQuery)
 
   // order
+  // eslint-disable-next-line unicorn/no-array-reduce, unicorn/prefer-object-from-entries
   q = dbQuery._orders.reduce((q, ord) => {
     return q.orderBy(ord.name, ord.descending ? 'desc' : 'asc')
   }, q)

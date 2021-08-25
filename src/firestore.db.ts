@@ -1,5 +1,6 @@
 import { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
 import {
+  BaseCommonDB,
   CommonDB,
   CommonDBCreateOptions,
   CommonDBOptions,
@@ -11,10 +12,9 @@ import {
   ObjectWithId,
   RunQueryResult,
 } from '@naturalcycles/db-lib'
-import { pMap, _chunk, _filterNullishValues, _omit } from '@naturalcycles/js-lib'
-import { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import { ErrorMode, pMap, _chunk, _filterNullishValues, _omit } from '@naturalcycles/js-lib'
+import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
-import { Transform } from 'stream'
 import { escapeDocId, unescapeDocId } from './firestore.util'
 import { dbQueryToFirestoreQuery } from './query.util'
 
@@ -25,11 +25,13 @@ export interface FirestoreDBCfg {
 export interface FirestoreDBOptions extends CommonDBOptions {}
 export interface FirestoreDBSaveOptions extends CommonDBSaveOptions {}
 
-export class FirestoreDB implements CommonDB {
-  constructor(public cfg: FirestoreDBCfg) {}
+export class FirestoreDB extends BaseCommonDB implements CommonDB {
+  constructor(public cfg: FirestoreDBCfg) {
+    super()
+  }
 
   // GET
-  async getByIds<ROW extends ObjectWithId>(
+  override async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: string[],
     opt?: FirestoreDBOptions,
@@ -44,7 +46,7 @@ export class FirestoreDB implements CommonDB {
   async getById<ROW extends ObjectWithId>(
     table: string,
     id: string,
-    opt?: FirestoreDBOptions,
+    _opt?: FirestoreDBOptions,
   ): Promise<ROW | undefined> {
     const doc = await this.cfg.firestore.collection(table).doc(escapeDocId(id)).get()
 
@@ -58,7 +60,7 @@ export class FirestoreDB implements CommonDB {
   }
 
   // QUERY
-  async runQuery<ROW extends ObjectWithId>(
+  override async runQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<RunQueryResult<ROW>> {
@@ -76,12 +78,12 @@ export class FirestoreDB implements CommonDB {
 
   async runFirestoreQuery<ROW extends ObjectWithId>(
     q: Query,
-    opt?: FirestoreDBOptions,
+    _opt?: FirestoreDBOptions,
   ): Promise<ROW[]> {
     return this.querySnapshotToArray(await q.get())
   }
 
-  async runQueryCount<ROW extends ObjectWithId>(
+  override async runQueryCount<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<number> {
@@ -89,30 +91,30 @@ export class FirestoreDB implements CommonDB {
     return rows.length
   }
 
-  streamQuery<ROW extends ObjectWithId>(
+  override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
-    opt?: CommonDBStreamOptions,
+    _opt?: CommonDBStreamOptions,
   ): ReadableTyped<ROW> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
     return firestoreQuery.stream().pipe(
-      new Transform({
-        objectMode: true,
-        transform: (doc: QueryDocumentSnapshot, _enc, cb) => {
-          cb(null, {
-            id: unescapeDocId(doc.id),
-            ...doc.data(),
-          })
+      transformMapSimple<QueryDocumentSnapshot<any>, ROW>(
+        doc => ({
+          id: unescapeDocId(doc.id),
+          ...doc.data(),
+        }),
+        {
+          errorMode: ErrorMode.SUPPRESS, // because .pipe cannot propagate errors
         },
-      }),
+      ),
     )
   }
 
   // SAVE
-  async saveBatch<ROW extends ObjectWithId>(
+  override async saveBatch<ROW extends ObjectWithId>(
     table: string,
     rows: ROW[],
-    opt?: FirestoreDBSaveOptions,
+    _opt?: FirestoreDBSaveOptions,
   ): Promise<void> {
     // Firestore allows max 500 items in one batch
     await pMap(
@@ -134,7 +136,7 @@ export class FirestoreDB implements CommonDB {
   }
 
   // DELETE
-  async deleteByQuery<ROW extends ObjectWithId>(
+  override async deleteByQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<number> {
@@ -149,7 +151,11 @@ export class FirestoreDB implements CommonDB {
     return ids.length
   }
 
-  async deleteByIds(table: string, ids: string[], opt?: FirestoreDBOptions): Promise<number> {
+  override async deleteByIds(
+    table: string,
+    ids: string[],
+    _opt?: FirestoreDBOptions,
+  ): Promise<number> {
     await pMap(_chunk(ids, 500), async chunk => {
       const batch = this.cfg.firestore.batch()
 
@@ -176,26 +182,28 @@ export class FirestoreDB implements CommonDB {
     return rows
   }
 
-  async getTables(): Promise<string[]> {
+  override async getTables(): Promise<string[]> {
     return [] // todo
   }
 
-  async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<CommonSchema<ROW>> {
+  override async getTableSchema<ROW extends ObjectWithId>(
+    table: string,
+  ): Promise<CommonSchema<ROW>> {
     return {
       table,
       fields: [],
     }
   }
 
-  async createTable(schema: CommonSchema, opt?: CommonDBCreateOptions): Promise<void> {
+  override async createTable(_schema: CommonSchema, _opt?: CommonDBCreateOptions): Promise<void> {
     // todo
   }
 
-  async commitTransaction(tx: DBTransaction, opt?: CommonDBSaveOptions): Promise<void> {
+  override async commitTransaction(_tx: DBTransaction, _opt?: CommonDBSaveOptions): Promise<void> {
     throw new Error('commitTransaction is not supported yet')
   }
 
-  async ping(): Promise<void> {
+  override async ping(): Promise<void> {
     // no-op now
   }
 }
