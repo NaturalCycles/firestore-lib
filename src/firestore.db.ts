@@ -2,11 +2,9 @@ import { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/fires
 import {
   BaseCommonDB,
   CommonDB,
-  CommonDBCreateOptions,
   CommonDBOptions,
   CommonDBSaveOptions,
   CommonDBStreamOptions,
-  CommonSchema,
   DBQuery,
   DBTransaction,
   ObjectWithId,
@@ -180,23 +178,6 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     })
 
     return rows
-  }
-
-  override async getTables(): Promise<string[]> {
-    return [] // todo
-  }
-
-  override async getTableSchema<ROW extends ObjectWithId>(
-    table: string,
-  ): Promise<CommonSchema<ROW>> {
-    return {
-      table,
-      fields: [],
-    }
-  }
-
-  override async createTable(_schema: CommonSchema, _opt?: CommonDBCreateOptions): Promise<void> {
-    // todo
   }
 
   override async commitTransaction(_tx: DBTransaction, _opt?: CommonDBSaveOptions): Promise<void> {
