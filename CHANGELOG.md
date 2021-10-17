@@ -1,3 +1,10 @@
+## [1.1.6](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.5...v1.1.6) (2021-10-17)
+
+
+### Bug Fixes
+
+* db-lib compat ([ad28580](https://github.com/NaturalCycles/firestore-lib/commit/ad28580cf772b9ff05d07cc89e6ee19be52981e3))
+
 ## [1.1.5](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.4...v1.1.5) (2021-10-17)
 
 
