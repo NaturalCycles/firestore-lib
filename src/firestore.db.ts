@@ -9,6 +9,7 @@ import {
   DBTransaction,
   ObjectWithId,
   RunQueryResult,
+  AnyObjectWithId,
 } from '@naturalcycles/db-lib'
 import { ErrorMode, pMap, _chunk, _filterNullishValues, _omit } from '@naturalcycles/js-lib'
 import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
@@ -21,7 +22,8 @@ export interface FirestoreDBCfg {
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}
-export interface FirestoreDBSaveOptions extends CommonDBSaveOptions {}
+export interface FirestoreDBSaveOptions<ROW extends ObjectWithId = AnyObjectWithId>
+  extends CommonDBSaveOptions<ROW> {}
 
 export class FirestoreDB extends BaseCommonDB implements CommonDB {
   constructor(public cfg: FirestoreDBCfg) {
@@ -112,7 +114,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
     rows: ROW[],
-    _opt?: FirestoreDBSaveOptions,
+    _opt?: FirestoreDBSaveOptions<ROW>,
   ): Promise<void> {
     // Firestore allows max 500 items in one batch
     await pMap(
