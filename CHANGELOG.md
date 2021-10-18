@@ -1,3 +1,10 @@
+## [1.1.8](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.7...v1.1.8) (2021-10-18)
+
+
+### Bug Fixes
+
+* correctly filter undefined values on save ([1eff2b4](https://github.com/NaturalCycles/firestore-lib/commit/1eff2b40fdb2ccfd137be268871d449ea2cbc74f))
+
 ## [1.1.7](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.6...v1.1.7) (2021-10-18)
 
 
