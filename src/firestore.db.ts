@@ -11,7 +11,7 @@ import {
   RunQueryResult,
   AnyObjectWithId,
 } from '@naturalcycles/db-lib'
-import { ErrorMode, pMap, _chunk, _filterNullishValues, _omit } from '@naturalcycles/js-lib'
+import { ErrorMode, pMap, _chunk, _omit } from '@naturalcycles/js-lib'
 import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
 import { escapeDocId, unescapeDocId } from './firestore.util'
@@ -125,7 +125,8 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
         chunk.forEach(row => {
           batch.set(
             this.cfg.firestore.collection(table).doc(escapeDocId(row.id)),
-            _filterNullishValues(row), // todo: check if we really need to filter them (thinking of null values)
+            // _filterNullishValues(row), // todo: check if we really need to filter them (thinking of null values)
+            row,
           )
         })
 

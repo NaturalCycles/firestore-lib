@@ -1,11 +1,11 @@
-import { replaceAll } from './string.util'
+import { _replaceAll } from '@naturalcycles/js-lib'
 
 const SLASH = '_SLASH_'
 
 export function escapeDocId(docId: string): string {
-  return replaceAll(docId, '/', SLASH)
+  return _replaceAll(docId, '/', SLASH)
 }
 
 export function unescapeDocId(docId: string): string {
-  return replaceAll(docId, SLASH, '/')
+  return _replaceAll(docId, SLASH, '/')
 }
