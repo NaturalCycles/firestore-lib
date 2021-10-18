@@ -1,3 +1,10 @@
+## [1.1.7](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.6...v1.1.7) (2021-10-18)
+
+
+### Bug Fixes
+
+* stop removing null values on save ([03b8f21](https://github.com/NaturalCycles/firestore-lib/commit/03b8f218c9c030d55ff769a653a6332580ab44dc))
+
 ## [1.1.6](https://github.com/NaturalCycles/firestore-lib/compare/v1.1.5...v1.1.6) (2021-10-17)
 
 
