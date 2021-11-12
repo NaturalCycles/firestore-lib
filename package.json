@@ -6,17 +6,14 @@
   "dependencies": {
     "@naturalcycles/db-lib": "^8.2.0",
     "@naturalcycles/js-lib": "^14.6.0",
-    "@naturalcycles/nodejs-lib": "^12.4.0"
-  },
-  "peerDependencies": {
-    "firebase-admin": ">=9.3.0"
+    "@naturalcycles/nodejs-lib": "^12.4.0",
+    "firebase-admin": "^10.0.0"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "^12.1.2",
     "@naturalcycles/test-lib": "^1.0.3",
     "@types/node": "^16.7.1",
     "dotenv": "^10.0.0",
-    "firebase-admin": "^10.0.0",
     "jest": "^27.0.6"
   },
   "files": [
@@ -37,7 +34,7 @@
     "url": "https://github.com/NaturalCycles/firestore-lib"
   },
   "engines": {
-    "node": ">=12.13"
+    "node": ">=14.15.0"
   },
   "version": "1.1.9",
   "description": "Firestore implementation of CommonDB interface",
