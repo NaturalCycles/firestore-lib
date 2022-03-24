@@ -1,4 +1,4 @@
-import { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
+import { Firestore, Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
 import {
   BaseCommonDB,
   CommonDB,
@@ -19,12 +19,11 @@ import {
   AnyObjectWithId,
 } from '@naturalcycles/js-lib'
 import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
-import * as firebaseAdmin from 'firebase-admin'
 import { escapeDocId, unescapeDocId } from './firestore.util'
 import { dbQueryToFirestoreQuery } from './query.util'
 
 export interface FirestoreDBCfg {
-  firestore: firebaseAdmin.firestore.Firestore
+  firestore: Firestore
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}

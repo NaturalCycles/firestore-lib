@@ -1,3 +1,4 @@
+import { Firestore } from '@google-cloud/firestore'
 import {
   FirestoreDB,
   FirestoreDBCfg,
@@ -8,4 +9,4 @@ import { dbQueryToFirestoreQuery } from './query.util'
 
 export type { FirestoreDBCfg, FirestoreDBOptions, FirestoreDBSaveOptions }
 
-export { FirestoreDB, dbQueryToFirestoreQuery }
+export { Firestore, FirestoreDB, dbQueryToFirestoreQuery }
