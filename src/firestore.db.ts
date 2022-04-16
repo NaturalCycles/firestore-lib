@@ -38,7 +38,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   // GET
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: ROW['id'][],
     opt?: FirestoreDBOptions,
   ): Promise<ROW[]> {
     // Oj, doesn't look like a very optimal implementation!
@@ -50,13 +50,13 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
   async getById<ROW extends ObjectWithId>(
     table: string,
-    id: string,
+    id: ROW['id'],
     _opt?: FirestoreDBOptions,
-  ): Promise<ROW | undefined> {
+  ): Promise<ROW | null> {
     const doc = await this.cfg.firestore.collection(table).doc(escapeDocId(id)).get()
 
     const data = doc.data()
-    if (data === undefined) return
+    if (data === undefined) return null
 
     return {
       id,
@@ -156,9 +156,9 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return ids.length
   }
 
-  override async deleteByIds(
+  override async deleteByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: ROW['id'][],
     _opt?: FirestoreDBOptions,
   ): Promise<number> {
     await pMap(_chunk(ids, 500), async chunk => {
