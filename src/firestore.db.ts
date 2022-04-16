@@ -3,6 +3,7 @@ import {
   BaseCommonDB,
   CommonDB,
   CommonDBOptions,
+  CommonDBSaveMethod,
   CommonDBSaveOptions,
   CommonDBStreamOptions,
   DBQuery,
@@ -17,6 +18,7 @@ import {
   _filterUndefinedValues,
   ObjectWithId,
   AnyObjectWithId,
+  _assert,
 } from '@naturalcycles/js-lib'
 import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
 import { escapeDocId, unescapeDocId } from './firestore.util'
@@ -27,8 +29,14 @@ export interface FirestoreDBCfg {
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}
-export interface FirestoreDBSaveOptions<ROW extends ObjectWithId = AnyObjectWithId>
+export interface FirestoreDBSaveOptions<ROW extends Partial<ObjectWithId> = AnyObjectWithId>
   extends CommonDBSaveOptions<ROW> {}
+
+const methodMap: Record<CommonDBSaveMethod, string> = {
+  insert: 'create',
+  update: 'update',
+  upsert: 'set',
+}
 
 export class FirestoreDB extends BaseCommonDB implements CommonDB {
   constructor(public cfg: FirestoreDBCfg) {
@@ -116,11 +124,13 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   }
 
   // SAVE
-  override async saveBatch<ROW extends ObjectWithId>(
+  override async saveBatch<ROW extends Partial<ObjectWithId>>(
     table: string,
     rows: ROW[],
-    _opt?: FirestoreDBSaveOptions<ROW>,
+    opt: FirestoreDBSaveOptions<ROW> = {},
   ): Promise<void> {
+    const method = methodMap[opt.saveMethod!] || 'set'
+
     // Firestore allows max 500 items in one batch
     await pMap(
       _chunk(rows, 500),
@@ -128,7 +138,12 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
         const batch = this.cfg.firestore.batch()
 
         chunk.forEach(row => {
-          batch.set(
+          _assert(
+            row.id,
+            `firestore-db doesn't support id auto-generation, but empty id was provided in saveBatch`,
+          )
+
+          batch[method](
             this.cfg.firestore.collection(table).doc(escapeDocId(row.id)),
             _filterUndefinedValues(row),
           )
