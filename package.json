@@ -4,16 +4,16 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^4.5.0",
+    "@google-cloud/firestore": "^5.0.2",
     "@naturalcycles/db-lib": "^8.2.0",
     "@naturalcycles/js-lib": "^14.6.0",
     "@naturalcycles/nodejs-lib": "^12.4.0",
-    "firebase-admin": "^10.0.0"
+    "firebase-admin": "^11.0.0"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "^12.1.2",
+    "@naturalcycles/dev-lib": "^13.0.1",
     "@naturalcycles/test-lib": "^1.0.3",
-    "@types/node": "^17.0.22",
+    "@types/node": "^18.0.0",
     "dotenv": "^16.0.0",
     "jest": "^28.1.0"
   },

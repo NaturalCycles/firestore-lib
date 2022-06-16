@@ -142,8 +142,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
             row.id,
             `firestore-db doesn't support id auto-generation, but empty id was provided in saveBatch`,
           )
-
-          batch[method](
+          ;(batch as any)[method](
             this.cfg.firestore.collection(table).doc(escapeDocId(row.id)),
             _filterUndefinedValues(row),
           )
