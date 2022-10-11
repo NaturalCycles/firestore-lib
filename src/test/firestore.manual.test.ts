@@ -22,6 +22,6 @@ test.skip('undefined value', async () => {
     ...createdUpdatedFields(),
   }
   await firestoreDB.saveBatch<TestItemDBM>(TEST_TABLE, [testItem])
-  const loaded = await firestoreDB.getById(TEST_TABLE, testItem.id)
+  const [loaded] = await firestoreDB.getByIds(TEST_TABLE, [testItem.id])
   console.log(loaded)
 })

@@ -19,6 +19,7 @@ import {
   ObjectWithId,
   AnyObjectWithId,
   _assert,
+  _isTruthy,
 } from '@naturalcycles/js-lib'
 import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
 import { escapeDocId, unescapeDocId } from './firestore.util'
@@ -47,29 +48,28 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: ROW['id'][],
-    opt?: FirestoreDBOptions,
+    _opt?: FirestoreDBOptions,
   ): Promise<ROW[]> {
     // Oj, doesn't look like a very optimal implementation!
     // TODO: check if we can query by keys or smth
-    return (await Promise.all(ids.map(id => this.getById<ROW>(table, id, opt)))).filter(
-      Boolean,
-    ) as ROW[]
-  }
+    // return (await Promise.all(ids.map(id => this.getById<ROW>(table, id, opt)))).filter(
+    //   Boolean,
+    // ) as ROW[]
+    if (!ids.length) return []
 
-  async getById<ROW extends ObjectWithId>(
-    table: string,
-    id: ROW['id'],
-    _opt?: FirestoreDBOptions,
-  ): Promise<ROW | null> {
-    const doc = await this.cfg.firestore.collection(table).doc(escapeDocId(id)).get()
+    const { firestore } = this.cfg
+    const col = firestore.collection(table)
 
-    const data = doc.data()
-    if (data === undefined) return null
-
-    return {
-      id,
-      ...(data as any),
-    }
+    return (await firestore.getAll(...ids.map(id => col.doc(escapeDocId(id)))))
+      .map(doc => {
+        const data = doc.data()
+        if (data === undefined) return
+        return {
+          id: unescapeDocId(doc.id),
+          ...(data as any),
+        }
+      })
+      .filter(_isTruthy)
   }
 
   // QUERY
@@ -83,7 +83,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
     // Special case when projection query didn't specify 'id'
     if (q._selectedFieldNames && !q._selectedFieldNames.includes('id')) {
-      rows = rows.map(r => _omit(r as any, ['id']))
+      rows = rows.map(r => _omit(r, ['id']))
     }
 
     return { rows }
@@ -201,8 +201,27 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return rows
   }
 
-  override async commitTransaction(_tx: DBTransaction, _opt?: CommonDBSaveOptions): Promise<void> {
-    throw new Error('commitTransaction is not supported yet')
+  override async commitTransaction(tx: DBTransaction, _opt?: CommonDBSaveOptions): Promise<void> {
+    const { firestore } = this.cfg
+
+    await firestore.runTransaction(async tr => {
+      for (const op of tx.ops) {
+        if (op.type === 'saveBatch') {
+          op.rows.forEach(row => {
+            tr.set(
+              firestore.collection(op.table).doc(escapeDocId(row.id)),
+              _filterUndefinedValues(row),
+            )
+          })
+        } else if (op.type === 'deleteByIds') {
+          op.ids.forEach(id => {
+            tr.delete(firestore.collection(op.table).doc(escapeDocId(id)))
+          })
+        } else {
+          throw new Error(`DBOperation not supported: ${(op as any).type}`)
+        }
+      }
+    })
   }
 
   override async ping(): Promise<void> {
