@@ -98,10 +98,11 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
   override async runQueryCount<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
-    opt?: FirestoreDBOptions,
+    _opt?: FirestoreDBOptions,
   ): Promise<number> {
-    const { rows } = await this.runQuery(q.select([]), opt)
-    return rows.length
+    const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
+    const r = await firestoreQuery.count().get()
+    return r.data().count
   }
 
   override streamQuery<ROW extends ObjectWithId>(
