@@ -111,17 +111,22 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   ): ReadableTyped<ROW> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
-    return firestoreQuery.stream().pipe(
-      transformMapSimple<QueryDocumentSnapshot<any>, ROW>(
-        doc => ({
-          id: unescapeDocId(doc.id),
-          ...doc.data(),
-        }),
-        {
-          errorMode: ErrorMode.SUPPRESS, // because .pipe cannot propagate errors
-        },
-      ),
-    )
+    const stream: ReadableTyped<ROW> = firestoreQuery
+      .stream()
+      .on('error', err => stream.emit('error', err))
+      .pipe(
+        transformMapSimple<QueryDocumentSnapshot<any>, ROW>(
+          doc => ({
+            id: unescapeDocId(doc.id),
+            ...doc.data(),
+          }),
+          {
+            errorMode: ErrorMode.SUPPRESS, // because .pipe cannot propagate errors
+          },
+        ),
+      )
+
+    return stream
   }
 
   // SAVE
