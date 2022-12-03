@@ -45,7 +45,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   }
 
   // GET
-  override async getByIds<ROW extends ObjectWithId>(
+  async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: ROW['id'][],
     _opt?: FirestoreDBOptions,
@@ -77,6 +77,14 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<RunQueryResult<ROW>> {
+    const idFilter = q._filters.find(f => f.name === 'id')
+    if (idFilter) {
+      const ids: string[] = Array.isArray(idFilter.val) ? idFilter.val : [idFilter.val]
+      return {
+        rows: await this.getByIds(q.table, ids, opt),
+      }
+    }
+
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
     let rows = await this.runFirestoreQuery<ROW>(firestoreQuery, opt)
@@ -165,18 +173,25 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     q: DBQuery<ROW>,
     opt?: FirestoreDBOptions,
   ): Promise<number> {
-    const firestoreQuery = dbQueryToFirestoreQuery(
-      q.select([]),
-      this.cfg.firestore.collection(q.table),
-    )
-    const ids = (await this.runFirestoreQuery<ROW>(firestoreQuery)).map(obj => obj.id)
+    let ids: ROW['id'][]
+
+    const idFilter = q._filters.find(f => f.name === 'id')
+    if (idFilter) {
+      ids = Array.isArray(idFilter.val) ? idFilter.val : [idFilter.val]
+    } else {
+      const firestoreQuery = dbQueryToFirestoreQuery(
+        q.select([]),
+        this.cfg.firestore.collection(q.table),
+      )
+      ids = (await this.runFirestoreQuery<ROW>(firestoreQuery)).map(obj => obj.id)
+    }
 
     await this.deleteByIds(q.table, ids, opt)
 
     return ids.length
   }
 
-  override async deleteByIds<ROW extends ObjectWithId>(
+  async deleteByIds<ROW extends ObjectWithId>(
     table: string,
     ids: ROW['id'][],
     _opt?: FirestoreDBOptions,
@@ -232,5 +247,9 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
   override async ping(): Promise<void> {
     // no-op now
+  }
+
+  override async getTables(): Promise<string[]> {
+    return []
   }
 }
