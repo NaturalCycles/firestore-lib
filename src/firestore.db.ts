@@ -45,7 +45,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   }
 
   // GET
-  async getByIds<ROW extends ObjectWithId>(
+  override async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: ROW['id'][],
     _opt?: FirestoreDBOptions,
