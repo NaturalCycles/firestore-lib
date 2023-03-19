@@ -35,7 +35,7 @@
     "url": "https://github.com/NaturalCycles/firestore-lib"
   },
   "engines": {
-    "node": ">=14.15.0"
+    "node": ">=18.12.0"
   },
   "version": "1.1.9",
   "description": "Firestore implementation of CommonDB interface",
