@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.0.0",
-    "@naturalcycles/db-lib": "^8.2.0",
+    "@naturalcycles/db-lib": "^9.0.0",
     "@naturalcycles/js-lib": "^14.6.0",
     "@naturalcycles/nodejs-lib": "^13.1.0"
   },
