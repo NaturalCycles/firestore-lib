@@ -16,6 +16,7 @@ import {
   CommonDBSupport,
   DBQuery,
   DBTransaction,
+  DBTransactionFn,
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import {
@@ -28,8 +29,6 @@ import {
   AnyObjectWithId,
   _assert,
   _isTruthy,
-  pDefer,
-  DeferredPromise,
 } from '@naturalcycles/js-lib'
 import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
 import { escapeDocId, unescapeDocId } from './firestore.util'
@@ -51,6 +50,12 @@ const methodMap: Record<CommonDBSaveMethod, SaveOp> = {
   upsert: 'set',
 }
 
+export class RollbackError extends Error {
+  constructor() {
+    super('rollback')
+  }
+}
+
 export class FirestoreDB extends BaseCommonDB implements CommonDB {
   constructor(public cfg: FirestoreDBCfg) {
     super()
@@ -66,19 +71,18 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: string[],
-    _opt?: FirestoreDBOptions,
+    opt: FirestoreDBOptions = {},
   ): Promise<ROW[]> {
-    // Oj, doesn't look like a very optimal implementation!
-    // TODO: check if we can query by keys or smth
-    // return (await Promise.all(ids.map(id => this.getById<ROW>(table, id, opt)))).filter(
-    //   Boolean,
-    // ) as ROW[]
     if (!ids.length) return []
 
     const { firestore } = this.cfg
     const col = firestore.collection(table)
 
-    return (await firestore.getAll(...ids.map(id => col.doc(escapeDocId(id)))))
+    return (
+      await ((opt.tx as FirestoreDBTransaction)?.tx || firestore).getAll(
+        ...ids.map(id => col.doc(escapeDocId(id))),
+      )
+    )
       .map(doc => {
         const data = doc.data()
         if (data === undefined) return
@@ -268,31 +272,19 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return rows
   }
 
-  // override async commitTransaction(tx: DBTransaction, _opt?: CommonDBSaveOptions): Promise<void> {
-  //   const { firestore } = this.cfg
-  //
-  //   await firestore.runTransaction(async tr => {
-  //     for (const op of tx.ops) {
-  //       if (op.type === 'saveBatch') {
-  //         op.rows.forEach(row => {
-  //           tr.set(
-  //             firestore.collection(op.table).doc(escapeDocId(row.id)),
-  //             _filterUndefinedValues(row),
-  //           )
-  //         })
-  //       } else if (op.type === 'deleteByIds') {
-  //         op.ids.forEach(id => {
-  //           tr.delete(firestore.collection(op.table).doc(escapeDocId(id)))
-  //         })
-  //       } else {
-  //         throw new Error(`DBOperation not supported: ${(op as any).type}`)
-  //       }
-  //     }
-  //   })
-  // }
-
-  override async createTransaction(): Promise<FirestoreDBTransaction> {
-    return await FirestoreDBTransaction.create(this)
+  override async runInTransaction(fn: DBTransactionFn): Promise<void> {
+    try {
+      await this.cfg.firestore.runTransaction(async firestoreTx => {
+        const tx = new FirestoreDBTransaction(this, firestoreTx)
+        await fn(tx)
+      })
+    } catch (err) {
+      if (err instanceof RollbackError) {
+        // RollbackError should be handled gracefully (not re-throw)
+        return
+      }
+      throw err
+    }
   }
 
   override async ping(): Promise<void> {
@@ -308,55 +300,32 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
  * https://firebase.google.com/docs/firestore/manage-data/transactions
  */
 export class FirestoreDBTransaction implements DBTransaction {
-  /**
-   * This defer is held during Transaction and
-   * is released when it's ready to be committed or rolled back.
-   */
-  // private txPendingDefer = pDefer()
-
-  /**
-   * This is resolved after Transaction is committed or rolled back.
-   * On error - it rejects with that error.
-   */
-  // private txCompletedDefer = pDefer()
-
-  private constructor(
+  constructor(
     public db: FirestoreDB,
     public tx: Transaction,
-    private txPendingDefer: DeferredPromise,
-    private txCompletedDefer: DeferredPromise,
   ) {}
 
-  static async create(db: FirestoreDB): Promise<FirestoreDBTransaction> {
-    const txCreated = pDefer<Transaction>()
-    const txPendingDefer = pDefer()
-    const txCompletedDefer = pDefer()
-
-    db.cfg.firestore
-      .runTransaction(async tx => {
-        txCreated.resolve(tx)
-
-        // Now we pause and let consumers to use the Transaction,
-        // until commit/rollback is called
-        await txPendingDefer
-      })
-      .then(() => {
-        txCompletedDefer.resolve()
-      })
-      .catch(err => {
-        txCompletedDefer.reject(err)
-      })
-
-    const tx = await txCreated
-    return new FirestoreDBTransaction(db, tx, txPendingDefer, txCompletedDefer)
-  }
-
-  async commit(): Promise<void> {
-    this.txPendingDefer.resolve()
-    await this.txCompletedDefer
-  }
   async rollback(): Promise<void> {
-    this.txPendingDefer.reject(new Error('rollback'))
-    await this.txCompletedDefer
+    throw new RollbackError()
+  }
+
+  async getByIds<ROW extends ObjectWithId>(
+    table: string,
+    ids: string[],
+    opt?: CommonDBOptions,
+  ): Promise<ROW[]> {
+    return await this.db.getByIds(table, ids, { ...opt, tx: this })
+  }
+
+  async saveBatch<ROW extends Partial<ObjectWithId>>(
+    table: string,
+    rows: ROW[],
+    opt?: CommonDBSaveOptions<ROW>,
+  ): Promise<void> {
+    await this.db.saveBatch(table, rows, { ...opt, tx: this })
+  }
+
+  async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
+    return await this.db.deleteByIds(table, ids, { ...opt, tx: this })
   }
 }
