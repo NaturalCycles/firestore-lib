@@ -14,6 +14,7 @@ import {
   CommonDBSaveOptions,
   CommonDBStreamOptions,
   CommonDBSupport,
+  CommonDBTransactionOptions,
   DBQuery,
   DBTransaction,
   DBTransactionFn,
@@ -272,12 +273,22 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return rows
   }
 
-  override async runInTransaction(fn: DBTransactionFn): Promise<void> {
+  override async runInTransaction(
+    fn: DBTransactionFn,
+    opt: CommonDBTransactionOptions = {},
+  ): Promise<void> {
+    const { readOnly } = opt
+
     try {
-      await this.cfg.firestore.runTransaction(async firestoreTx => {
-        const tx = new FirestoreDBTransaction(this, firestoreTx)
-        await fn(tx)
-      })
+      await this.cfg.firestore.runTransaction(
+        async firestoreTx => {
+          const tx = new FirestoreDBTransaction(this, firestoreTx)
+          await fn(tx)
+        },
+        {
+          readOnly,
+        },
+      )
     } catch (err) {
       if (err instanceof RollbackError) {
         // RollbackError should be handled gracefully (not re-throw)
