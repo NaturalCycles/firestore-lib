@@ -1,7 +1,7 @@
 {
   "name": "@naturalcycles/firestore-lib",
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.0.0",

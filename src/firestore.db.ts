@@ -21,17 +21,15 @@ import {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import {
-  ErrorMode,
   pMap,
   _chunk,
   _omit,
   _filterUndefinedValues,
   ObjectWithId,
-  AnyObjectWithId,
   _assert,
   _isTruthy,
 } from '@naturalcycles/js-lib'
-import { ReadableTyped, transformMapSimple } from '@naturalcycles/nodejs-lib'
+import { ReadableTyped } from '@naturalcycles/nodejs-lib'
 import { escapeDocId, unescapeDocId } from './firestore.util'
 import { dbQueryToFirestoreQuery } from './query.util'
 
@@ -40,7 +38,7 @@ export interface FirestoreDBCfg {
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}
-export interface FirestoreDBSaveOptions<ROW extends Partial<ObjectWithId> = AnyObjectWithId>
+export interface FirestoreDBSaveOptions<ROW extends ObjectWithId>
   extends CommonDBSaveOptions<ROW> {}
 
 type SaveOp = 'create' | 'update' | 'set'
@@ -142,26 +140,16 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   ): ReadableTyped<ROW> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
-    const stream: ReadableTyped<ROW> = firestoreQuery
-      .stream()
-      .on('error', err => stream.emit('error', err))
-      .pipe(
-        transformMapSimple<QueryDocumentSnapshot<any>, ROW>(
-          doc => ({
-            id: unescapeDocId(doc.id),
-            ...doc.data(),
-          }),
-          {
-            errorMode: ErrorMode.SUPPRESS, // because .pipe cannot propagate errors
-          },
-        ),
-      )
-
-    return stream
+    return (firestoreQuery.stream() as ReadableTyped<QueryDocumentSnapshot<any>>).map(doc => {
+      return {
+        id: unescapeDocId(doc.id),
+        ...doc.data(),
+      } as ROW
+    })
   }
 
   // SAVE
-  override async saveBatch<ROW extends Partial<ObjectWithId>>(
+  override async saveBatch<ROW extends ObjectWithId>(
     table: string,
     rows: ROW[],
     opt: FirestoreDBSaveOptions<ROW> = {},
@@ -328,7 +316,7 @@ export class FirestoreDBTransaction implements DBTransaction {
     return await this.db.getByIds(table, ids, { ...opt, tx: this })
   }
 
-  async saveBatch<ROW extends Partial<ObjectWithId>>(
+  async saveBatch<ROW extends ObjectWithId>(
     table: string,
     rows: ROW[],
     opt?: CommonDBSaveOptions<ROW>,
