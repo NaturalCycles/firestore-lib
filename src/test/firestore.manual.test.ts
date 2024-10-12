@@ -2,8 +2,8 @@ import { createdUpdatedFields } from '@naturalcycles/db-lib'
 import {
   runCommonDaoTest,
   runCommonDBTest,
-  TestItemDBM,
   TEST_TABLE,
+  TestItemDBM,
 } from '@naturalcycles/db-lib/dist/testing'
 import { firestoreDB } from './firestore.mock'
 

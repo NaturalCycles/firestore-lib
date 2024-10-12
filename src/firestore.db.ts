@@ -21,13 +21,13 @@ import {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import {
-  pMap,
-  _chunk,
-  _omit,
-  _filterUndefinedValues,
-  ObjectWithId,
   _assert,
+  _chunk,
+  _filterUndefinedValues,
   _isTruthy,
+  _omit,
+  ObjectWithId,
+  pMap,
 } from '@naturalcycles/js-lib'
 import { ReadableTyped } from '@naturalcycles/nodejs-lib'
 import { escapeDocId, unescapeDocId } from './firestore.util'
@@ -62,7 +62,8 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
   override support: CommonDBSupport = {
     ...commonDBFullSupport,
-    updateByQuery: false,
+    patchByQuery: false, // todo: can be implemented
+    increment: false, // todo
     tableSchemas: false,
   }
 
