@@ -1,4 +1,5 @@
 import {
+  FieldValue,
   Firestore,
   Query,
   QueryDocumentSnapshot,
@@ -26,8 +27,10 @@ import {
   _filterUndefinedValues,
   _isTruthy,
   _omit,
+  _stringMapEntries,
   ObjectWithId,
   pMap,
+  StringMap,
 } from '@naturalcycles/js-lib'
 import { ReadableTyped } from '@naturalcycles/nodejs-lib'
 import { escapeDocId, unescapeDocId } from './firestore.util'
@@ -63,7 +66,6 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   override support: CommonDBSupport = {
     ...commonDBFullSupport,
     patchByQuery: false, // todo: can be implemented
-    increment: false, // todo
     tableSchemas: false,
   }
 
@@ -285,6 +287,33 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       }
       throw err
     }
+  }
+
+  /**
+   * Caveat: it always returns an empty object, not the actual incrementMap.
+   */
+  override async incrementBatch(
+    table: string,
+    prop: string,
+    incrementMap: StringMap<number>,
+    _opt?: CommonDBOptions,
+  ): Promise<StringMap<number>> {
+    const { firestore } = this.cfg
+    const col = firestore.collection(table)
+    const batch = firestore.batch()
+
+    for (const [id, increment] of _stringMapEntries(incrementMap)) {
+      batch.set(
+        col.doc(escapeDocId(id)),
+        {
+          [prop]: FieldValue.increment(increment),
+        },
+        { merge: true },
+      )
+    }
+
+    await batch.commit()
+    return {}
   }
 
   override async ping(): Promise<void> {
