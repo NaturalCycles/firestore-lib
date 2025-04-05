@@ -1,13 +1,12 @@
 import { createdUpdatedFields } from '@naturalcycles/db-lib'
+import type { TestItemDBM } from '@naturalcycles/db-lib/dist/testing/index.js'
 import {
   runCommonDaoTest,
   runCommonDBTest,
   TEST_TABLE,
-  TestItemDBM,
-} from '@naturalcycles/db-lib/dist/testing'
-import { firestoreDB } from './firestore.mock'
-
-jest.setTimeout(60000)
+} from '@naturalcycles/db-lib/dist/testing/index.js'
+import { describe, test } from 'vitest'
+import { firestoreDB } from './firestore.mock.js'
 
 describe('runCommonDBTest', () => runCommonDBTest(firestoreDB))
 

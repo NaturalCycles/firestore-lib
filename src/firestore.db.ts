@@ -1,15 +1,13 @@
-import {
-  FieldValue,
+import type {
   Firestore,
   Query,
   QueryDocumentSnapshot,
   QuerySnapshot,
   Transaction,
 } from '@google-cloud/firestore'
-import {
-  BaseCommonDB,
+import { FieldValue } from '@google-cloud/firestore'
+import type {
   CommonDB,
-  commonDBFullSupport,
   CommonDBOptions,
   CommonDBSaveMethod,
   CommonDBSaveOptions,
@@ -21,6 +19,8 @@ import {
   DBTransactionFn,
   RunQueryResult,
 } from '@naturalcycles/db-lib'
+import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib'
 import {
   _assert,
   _chunk,
@@ -28,13 +28,11 @@ import {
   _isTruthy,
   _omit,
   _stringMapEntries,
-  ObjectWithId,
   pMap,
-  StringMap,
 } from '@naturalcycles/js-lib'
-import { ReadableTyped } from '@naturalcycles/nodejs-lib'
-import { escapeDocId, unescapeDocId } from './firestore.util'
-import { dbQueryToFirestoreQuery } from './query.util'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import { escapeDocId, unescapeDocId } from './firestore.util.js'
+import { dbQueryToFirestoreQuery } from './query.util.js'
 
 export interface FirestoreDBCfg {
   firestore: Firestore
@@ -306,6 +304,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       batch.set(
         col.doc(escapeDocId(id)),
         {
+          // todo: lazy-load FieldValue
           [prop]: FieldValue.increment(increment),
         },
         { merge: true },
