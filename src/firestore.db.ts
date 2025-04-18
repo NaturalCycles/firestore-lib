@@ -333,6 +333,10 @@ export class FirestoreDBTransaction implements DBTransaction {
     public tx: Transaction,
   ) {}
 
+  async commit(): Promise<void> {
+    throw new Error('FirestoreDBTransaction.commit() is not implemented')
+  }
+
   async rollback(): Promise<void> {
     throw new RollbackError()
   }
